@@ -10,7 +10,8 @@ iniciarServidor();
 function iniciarServidor() {
 	// Creamos el servidor TCP
 	const server = net.createServer();
-
+	// creamos la variable de lectura
+    var lectura = process.openStdin();
 	// Emite cuando el socket está listo y escuchando mensajes de datagramas
 	server.listen(puerto, 'localhost', () => {
 		const address = server.address();
@@ -20,23 +21,27 @@ function iniciarServidor() {
 		console.log("   El servidor esta escuchando : " + ipaddr + ":" + port);
 		console.log(" - Esperando peticion del Cliente - ");
 	});
-
+	// Array de sockets
 	const sockets = [];
 	server.on('connection', (sock) => {
-
+		// Agregamos sock al Array de sockets
 		sockets.push(sock);
+		// Leemos por consola
+		lectura.on('data', function(d) {
+			// enviamos en response la cadena 'SERVIDOR: hola'
+			const datoEnviar = d.toString().trim();
+			// Preparamos el Buffer para encapsular el mensaje
+			const dataBuffer = Buffer.from(datoEnviar);
+			// Enviamos dato a cliente
+			sock.write(dataBuffer);
+		});
 		// Recibimos el dato y enviamos
 		sock.on('data', data => {
-			console.log(`Mensaje recibido: ${data.toString()} de ${sock.remoteAddress}:${sock.remotePort}`);
+			// almacemos la cadena del cliente en datoRecibido
 			var datoRecibido = data.toString();
-			const response = "Bienvenido al servidor -> " + datoRecibido;
-			const dataBuffer = Buffer.from(response);
-
-			// Escribe los datos a todos los conectados, el cliente los recibirá como datos del servidor
-			sockets.forEach((sock, index, array) => {
-				sock.write(dataBuffer);
-				console.log("Dato enviado!!!");
-			});
+			// Mostramos el dato recibido del cliente
+			console.log('CLIENTE : '+ datoRecibido);
+			console.log("SERVIDOR : ");
 		});
 
 		// Cerramos la conexion del socket

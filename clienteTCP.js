@@ -5,31 +5,37 @@ const net = require('net');
 const direccion = '127.0.0.1';
 const puerto = 9000;
 
-// Leemos por consola, y despues iniciamos el cliente
-process.stdout.write('Cual es tu nombre : ');
-process.stdin.on('data', (data) => {
-    const respuesta = data.toString().trim();
-    iniciarCliente(respuesta);
-});
+iniciarCliente();
 
-function iniciarCliente(datoEnviar) {
+function iniciarCliente() {
+    // creamos el socker cliente
     const client = new net.Socket();
+    // creamos la variable de lectura
+    var lectura = process.openStdin();
     // conectamos con el servidor
-    client.connect(puerto, direccion, function() {
+    client.connect(puerto, direccion, ()=> {
+        // variables para obtener puerto y direccion del cliente
         const address = client.address();
         const port = address.port;
         const ipaddr = address.address;
         console.log(" - Cliente TCP INICIADO - ");
         console.log("   El cliente esta escuchando : " + ipaddr + ":" + port);
+        console.log("CLIENTE : ");
+    });
+
+    lectura.on('data', function(d) {
+        const datoEnviar = d.toString().trim();
         // enviamos el dato
         client.write(datoEnviar);
-        console.log("Dato enviado!!!");
     });
+
     // recibimos dato del servidor
     client.on('data', data => {
-        console.log('Datos recibidos del servidor : ' + data);
-        client.destroy();
+        console.log('SERVIDOR : ' + data);
+        console.log("CLIENTE : ");
+        // client.destroy();
     });
+
     // cerramos la conexion con el servidor
     client.on('close', () => {
         console.log('Conexión cerrada');
